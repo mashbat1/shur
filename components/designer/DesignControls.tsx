@@ -93,10 +93,6 @@ export default function DesignControls() {
     router.push("/cart");
   }
 
-  // Reset pendant on bracelet (it has no hanging point)
-  useEffect(() => {
-    if (productType === "bracelet" && pendantId) setPendant(null);
-  }, [productType, pendantId, setPendant]);
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4">
@@ -147,43 +143,45 @@ export default function DesignControls() {
         </div>
       </div>
 
-      {(productType === "necklace" || productType === "phone_strap") && (
-        <div>
-          <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
-            {productType === "phone_strap" ? "Цацаг / чимэг" : "Зүүлтийн чимэг"}
-          </label>
-          <div className="grid grid-cols-3 gap-1">
+      <div>
+        <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
+          {productType === "phone_strap"
+            ? "Цацаг / чимэг"
+            : productType === "bracelet"
+            ? "Унжуурга"
+            : "Зүүлтийн чимэг"}
+        </label>
+        <div className="grid grid-cols-3 gap-1">
+          <button
+            onClick={() => setPendant(null)}
+            className={`rounded-md border px-2 py-2 text-[11px] transition ${
+              !pendantId
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-line bg-bg text-ink hover:border-muted"
+            }`}
+          >
+            Чимэггүй
+          </button>
+          {PENDANT_BEADS.map((c) => (
             <button
-              onClick={() => setPendant(null)}
-              className={`rounded-md border px-2 py-2 text-[11px] transition ${
-                !pendantId
-                  ? "border-accent bg-accent/10 text-accent"
-                  : "border-line bg-bg text-ink hover:border-muted"
+              key={c.id}
+              onClick={() => setPendant(c.id)}
+              title={`${c.name} — ${c.price.toLocaleString()}₮`}
+              className={`flex flex-col items-center gap-0.5 rounded-md border px-1 py-1.5 transition ${
+                pendantId === c.id
+                  ? "border-accent bg-accent/10"
+                  : "border-line bg-bg hover:border-muted"
               }`}
             >
-              Чимэггүй
+              <span
+                className="h-5 w-5 rounded-full ring-1 ring-black/30"
+                style={{ background: c.color }}
+              />
+              <span className="truncate text-[10px] text-ink">{c.name}</span>
             </button>
-            {PENDANT_BEADS.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setPendant(c.id)}
-                title={`${c.name} — ${c.price.toLocaleString()}₮`}
-                className={`flex flex-col items-center gap-0.5 rounded-md border px-1 py-1.5 transition ${
-                  pendantId === c.id
-                    ? "border-accent bg-accent/10"
-                    : "border-line bg-bg hover:border-muted"
-                }`}
-              >
-                <span
-                  className="h-5 w-5 rounded-full ring-1 ring-black/30"
-                  style={{ background: c.color }}
-                />
-                <span className="truncate text-[10px] text-ink">{c.name}</span>
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
-      )}
+      </div>
 
       <div>
         <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">

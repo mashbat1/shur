@@ -34,18 +34,23 @@ export default function BeadsOnCurve({
   );
 
   const pendant = pendantId ? getBead(pendantId) : null;
-  const showPendant =
-    pendant &&
-    (productType === "necklace" || productType === "phone_strap");
+  const showPendant = !!pendant;
 
-  // Pendant placement: hang from the front of necklace OR bottom of phone strap
+  // Pendant placement
+  //   necklace : t=0.25 → +Z (front of the body)
+  //   strap    : t=0.5  → bottom of the U loop
+  //   bracelet : t=0.25 → visible side of the loop, short cord
   const pendantData = useMemo(() => {
     if (!showPendant || !pendant) return null;
-    // necklace : t=0.25 → +Z front of the body
-    // strap    : t=0.5  → bottom of the U loop
-    const t = productType === "phone_strap" ? 0.5 : 0.25;
+    const t =
+      productType === "phone_strap" ? 0.5 : 0.25;
     const attach = curve.getPointAt(t);
-    const chainLengthMm = productType === "phone_strap" ? 12 : 25;
+    const chainLengthMm =
+      productType === "phone_strap"
+        ? 12
+        : productType === "bracelet"
+        ? 8
+        : 25;
     const chainEnd = new THREE.Vector3(
       attach.x,
       attach.y - chainLengthMm * MM_TO_UNIT,
