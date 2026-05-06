@@ -116,9 +116,59 @@ function doPost(e) {
       "",
     ]);
 
+    // Confirmation email + (optional) SMS — runs in the doPost context which
+    // has the script owner's permissions, so MailApp / UrlFetchApp are OK.
+    sendOrderConfirmation(data);
+
     return json({ ok: true, id: data.id });
   } catch (err) {
     return json({ ok: false, error: String(err) });
+  }
+}
+
+function sendOrderConfirmation(data) {
+  const email = data.customer && data.customer.email;
+  const phone = data.customer && data.customer.phone;
+  const name = data.customer && data.customer.name;
+  const id = data.id;
+  const total = data.total || 0;
+  const summary = summarizeItems(data.items || []);
+  const trackLink = TRACK_BASE_URL + "/order/" + encodeURIComponent(id);
+
+  const subject = "Beeb — Захиалга #" + id + " баталгаажлаа";
+  const body = [
+    "Сайн байна уу" + (name ? ", " + name : "") + ".",
+    "",
+    "Таны захиалгыг бид хүлээн авлаа.",
+    "",
+    "  Захиалгын дугаар : " + id,
+    "  Бүтээгдэхүүн     : " + summary,
+    "  Нийт             : " + total.toLocaleString() + "₮",
+    "",
+    "Төлвийн өөрчлөлт бүрд имэйл автоматаар очно.",
+    "Захиалгын явцыг харах: " + trackLink,
+    "",
+    "Beeb багт хандсанд баярлалаа.",
+  ].join("\n");
+
+  if (email && /\S+@\S+/.test(String(email))) {
+    try {
+      MailApp.sendEmail(email, subject, body);
+    } catch (err) {
+      Logger.log("Confirmation email error: " + err);
+    }
+  }
+
+  if (TWILIO.accountSid && TWILIO.authToken && TWILIO.fromNumber && phone) {
+    try {
+      sendTwilioSms(
+        String(phone),
+        "Beeb захиалга #" + id + " хүлээн авлаа. " +
+          total.toLocaleString() + "₮. " + trackLink,
+      );
+    } catch (err) {
+      Logger.log("Confirmation SMS error: " + err);
+    }
   }
 }
 
