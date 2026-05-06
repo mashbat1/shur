@@ -46,22 +46,18 @@ export default function Canvas3D() {
     camHeight = 0;
     target = [0, 0, 0];
   } else if (onBody) {
-    // RPM avatar: feet ~y=0.13, hips 1.04, neck 1.47, head 1.56, hands at y=1.44 ±0.65 (T-pose)
+    // RPM avatar in T-pose: feet y=0.13, hips 1.04, neck 1.47, head 1.56,
+    // hands at y=1.44 ±0.65. Pull back enough to fit feet → head + arm width.
+    camDistance = 2.2;
     if (productType === "necklace") {
-      // Bust shot — neck centred in frame
-      camDistance = 1.3;
-      camHeight = 1.5;
-      target = [0, 1.42, 0];
+      camHeight = 1.05;
+      target = [0, 0.95, 0];
     } else if (productType === "bracelet") {
-      // Look at the left wrist (LeftHand is at +X 0.65, y 1.44)
-      camDistance = 1.3;
-      camHeight = 1.4;
-      target = [0.25, 1.35, 0];
-    } else {
-      // Generic full-body fallback
-      camDistance = 1.7;
-      camHeight = 1.1;
+      camHeight = 1.0;
       target = [0, 0.9, 0];
+    } else {
+      camHeight = 1.0;
+      target = [0, 0.85, 0];
     }
   } else {
     camDistance = Math.max(0.6, lengthCm / 30);
