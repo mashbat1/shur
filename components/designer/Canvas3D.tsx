@@ -60,8 +60,16 @@ export default function Canvas3D() {
       target = [0, 0.85, 0];
     }
   } else {
-    camDistance = Math.max(0.6, lengthCm / 30);
-    camHeight = camDistance * 0.6;
+    // Pull back enough to fit the design even on portrait/narrow canvases.
+    //  - bracelet/necklace: extent = circumference/π (diameter of the loop)
+    //  - phone strap     : ~ width of the U at the widest point
+    const lengthU = lengthCm * 0.1; // cm → bead-system units
+    const extent =
+      productType === "phone_strap"
+        ? lengthU * 0.6
+        : lengthU / Math.PI;
+    camDistance = Math.max(1.5, extent * 2.6);
+    camHeight = camDistance * 0.5;
     target = [0, 0, 0];
   }
 
