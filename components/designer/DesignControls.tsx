@@ -9,6 +9,7 @@ import {
   totalPrice,
   ProductType,
   Gender,
+  EnvPreset,
 } from "@/lib/designStore";
 import { PENDANT_BEADS } from "@/lib/beads";
 import { addToCart } from "@/lib/cart";
@@ -23,6 +24,15 @@ const PRODUCT_LABELS: Record<ProductType, string> = {
 const GENDER_LABELS: Record<Gender, string> = {
   female: "Эмэгтэй",
   male: "Эрэгтэй",
+};
+
+const ENV_LABELS: Record<EnvPreset, string> = {
+  studio: "Студи",
+  city: "Хот",
+  sunset: "Үдэш",
+  apartment: "Орон сууц",
+  warehouse: "Агуулах",
+  park: "Парк",
 };
 
 export default function DesignControls() {
@@ -42,6 +52,8 @@ export default function DesignControls() {
     setViewMode,
     gender,
     setGender,
+    envPreset,
+    setEnvPreset,
   } = useDesign();
 
   const lengthCm = customLengthCm ?? defaultLengthCm(productType);
@@ -240,6 +252,23 @@ export default function DesignControls() {
             </div>
           </>
         )}
+      </div>
+
+      <div>
+        <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
+          Орчны гэрэлтүүлэг
+        </label>
+        <select
+          value={envPreset}
+          onChange={(e) => setEnvPreset(e.target.value as EnvPreset)}
+          className="w-full rounded-md border border-line bg-bg px-2 py-1.5 text-xs text-ink focus:border-accent focus:outline-none"
+        >
+          {(Object.keys(ENV_LABELS) as EnvPreset[]).map((p) => (
+            <option key={p} value={p}>
+              {ENV_LABELS[p]}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

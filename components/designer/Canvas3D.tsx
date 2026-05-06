@@ -11,6 +11,7 @@ import {
 } from "@/lib/designStore";
 import BeadsOnCurve from "./BeadsOnCurve";
 import BodyModel from "./BodyModel";
+import PhoneModel from "./PhoneModel";
 
 export type CameraPreset = "fit" | "close";
 
@@ -23,15 +24,25 @@ export default function Canvas3D() {
     viewMode,
     gender,
     pendantId,
+    envPreset,
   } = useDesign();
   const lengthCm = customLengthCm ?? defaultLengthCm(productType);
   const stringMat = STRINGS.find((s) => s.id === stringId) ?? STRINGS[0];
 
   const onBody = viewMode === "on_body";
+  const onPhone = onBody && productType === "phone_strap";
 
-  const camDistance = onBody ? 2.6 : Math.max(0.6, lengthCm / 30);
-  const camHeight = onBody ? 1.4 : camDistance * 0.6;
-  const target: [number, number, number] = onBody ? [0, 1.0, 0] : [0, 0, 0];
+  // Camera config:
+  //  - phone view: close-up on the phone (~30cm away)
+  //  - body view: full body shot
+  //  - alone:     scaled to design size
+  const camDistance = onPhone ? 0.35 : onBody ? 2.6 : Math.max(0.6, lengthCm / 30);
+  const camHeight = onPhone ? 0 : onBody ? 1.4 : camDistance * 0.6;
+  const target: [number, number, number] = onPhone
+    ? [0, 0, 0]
+    : onBody
+    ? [0, 1.0, 0]
+    : [0, 0, 0];
 
   const beadGroup = (
     <BeadsOnCurve
@@ -62,9 +73,11 @@ export default function Canvas3D() {
       />
       <directionalLight position={[-2, 1, -2]} intensity={0.4} />
 
-      <Environment preset="studio" />
+      <Environment preset={envPreset} />
 
-      {onBody ? (
+      {onPhone ? (
+        <PhoneModel>{beadGroup}</PhoneModel>
+      ) : onBody ? (
         <Suspense fallback={null}>
           <BodyModel productType={productType} gender={gender}>
             {beadGroup}
@@ -75,14 +88,20 @@ export default function Canvas3D() {
       )}
 
       <ContactShadows
-        position={[0, onBody ? 0 : -camDistance * 0.5, 0]}
-        opacity={0.45}
-        scale={onBody ? 4 : camDistance * 4}
+        position={[0, onPhone ? -0.13 : onBody ? 0 : -camDistance * 0.5, 0]}
+        opacity={onPhone ? 0.6 : 0.45}
+        scale={onPhone ? 0.4 : onBody ? 4 : camDistance * 4}
         blur={2.5}
-        far={onBody ? 3 : camDistance * 2}
+        far={onPhone ? 0.3 : onBody ? 3 : camDistance * 2}
       />
 
-      <CameraRig onBody={onBody} fitTarget={target} fitDistance={camDistance} />
+      <CameraRig
+        onBody={onBody}
+        fitTarget={target}
+        fitPos={[camDistance, camHeight, camDistance]}
+        minDist={onPhone ? 0.15 : onBody ? 0.3 : camDistance * 0.4}
+        maxDist={onPhone ? 1 : onBody ? 6 : camDistance * 4}
+      />
     </Canvas>
   );
 }
@@ -90,11 +109,15 @@ export default function Canvas3D() {
 function CameraRig({
   onBody,
   fitTarget,
-  fitDistance,
+  fitPos,
+  minDist,
+  maxDist,
 }: {
   onBody: boolean;
   fitTarget: [number, number, number];
-  fitDistance: number;
+  fitPos: [number, number, number];
+  minDist: number;
+  maxDist: number;
 }) {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
@@ -110,20 +133,16 @@ function CameraRig({
       if (detail === "close" && onBody && currentAnchor) {
         const a = currentAnchor;
         ctrl.target.set(a.x, a.y, a.z);
-        camera.position.set(a.x + 0.3, a.y + 0.05, a.z + 0.3);
+        camera.position.set(a.x + 0.25, a.y + 0.05, a.z + 0.25);
       } else {
         ctrl.target.set(...fitTarget);
-        if (onBody) {
-          camera.position.set(fitDistance, 1.4, fitDistance);
-        } else {
-          camera.position.set(fitDistance, fitDistance * 0.6, fitDistance);
-        }
+        camera.position.set(...fitPos);
       }
       ctrl.update();
     }
     window.addEventListener("zoom-preset", handler);
     return () => window.removeEventListener("zoom-preset", handler);
-  }, [camera, onBody, fitTarget, fitDistance, currentAnchor]);
+  }, [camera, onBody, fitTarget, fitPos, currentAnchor]);
 
   return (
     <OrbitControls
@@ -133,8 +152,8 @@ function CameraRig({
       target={new THREE.Vector3(...fitTarget)}
       autoRotate={!onBody && beads.length > 0}
       autoRotateSpeed={0.6}
-      minDistance={onBody ? 0.3 : fitDistance * 0.4}
-      maxDistance={onBody ? 6 : fitDistance * 4}
+      minDistance={minDist}
+      maxDistance={maxDist}
     />
   );
 }

@@ -9,6 +9,7 @@ import {
   getCart,
   removeFromCart,
   placeOrder,
+  SHEETS_CONFIGURED,
 } from "@/lib/cart";
 import { getBead } from "@/lib/beads";
 import { STRINGS } from "@/lib/designStore";
@@ -24,6 +25,7 @@ export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [confirmed, setConfirmed] = useState<Order | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", address: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setCart(getCart());
@@ -37,13 +39,18 @@ export default function CartPage() {
     setCart(getCart());
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (cart.length === 0) return;
+    if (cart.length === 0 || submitting) return;
     if (!form.name.trim() || !form.phone.trim() || !form.address.trim()) return;
-    const order = placeOrder(cart, form);
-    setConfirmed(order);
-    setCart([]);
+    setSubmitting(true);
+    try {
+      const order = await placeOrder(cart, form);
+      setConfirmed(order);
+      setCart([]);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const total = cart.reduce((s, i) => s + i.price, 0);
@@ -55,20 +62,42 @@ export default function CartPage() {
           <div className="mb-4 text-5xl">✓</div>
           <h1 className="mb-2 text-2xl font-bold">Захиалга баталгаажлаа</h1>
           <p className="mb-1 text-sm text-muted">
-            Захиалгын дугаар: <span className="font-mono text-ink">{confirmed.id}</span>
+            Захиалгын дугаар:{" "}
+            <span className="font-mono text-base font-bold text-ink">
+              {confirmed.id}
+            </span>
           </p>
           <p className="mb-6 text-sm text-muted">
-            Нийт: <span className="font-bold text-accent">{confirmed.total.toLocaleString()}₮</span>
+            Нийт:{" "}
+            <span className="font-bold text-accent">
+              {confirmed.total.toLocaleString()}₮
+            </span>
           </p>
           <p className="mb-6 text-xs text-muted">
-            Бид удахгүй <span className="text-ink">{confirmed.customer.phone}</span> утсаар холбогдоно.
+            Бид удахгүй <span className="text-ink">{confirmed.customer.phone}</span>{" "}
+            утсаар холбогдоно.
           </p>
-          <Link
-            href="/designer"
-            className="inline-block rounded-lg bg-accent px-6 py-3 text-sm font-bold text-black hover:brightness-110"
-          >
-            Шинэ загвар хийх
-          </Link>
+          <div className="flex flex-col items-center gap-3">
+            <Link
+              href={`/order/${confirmed.id}`}
+              className="inline-block w-full rounded-lg bg-accent px-6 py-3 text-sm font-bold text-black hover:brightness-110"
+            >
+              Захиалгын явц харах →
+            </Link>
+            <Link
+              href="/designer"
+              className="text-xs text-muted hover:text-ink"
+            >
+              Шинэ загвар хийх
+            </Link>
+          </div>
+          {!SHEETS_CONFIGURED && (
+            <p className="mt-6 rounded-md bg-yellow-500/10 p-2 text-[10px] text-yellow-400">
+              ⚠ Google Sheets холбогдоогүй. Захиалга зөвхөн локалд хадгалагдсан.
+              <br />
+              <code>SHEETS_SETUP.md</code> файлыг үзнэ үү.
+            </p>
+          )}
         </div>
       </main>
     );
@@ -193,9 +222,10 @@ export default function CartPage() {
               </div>
               <button
                 type="submit"
-                className="w-full rounded-md bg-accent py-2.5 text-sm font-bold text-black transition hover:brightness-110"
+                disabled={submitting}
+                className="w-full rounded-md bg-accent py-2.5 text-sm font-bold text-black transition hover:brightness-110 disabled:opacity-50"
               >
-                Захиалга өгөх
+                {submitting ? "Илгээж байна…" : "Захиалга өгөх"}
               </button>
               <p className="text-[10px] text-muted">
                 * Туршилтын горим — бодит төлбөр аваагүй

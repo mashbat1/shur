@@ -4,6 +4,13 @@ import { BEADS, beadAxialSize, getBead } from "./beads";
 export type ProductType = "bracelet" | "necklace" | "phone_strap";
 export type ViewMode = "alone" | "on_body";
 export type Gender = "female" | "male";
+export type EnvPreset =
+  | "studio"
+  | "city"
+  | "sunset"
+  | "apartment"
+  | "warehouse"
+  | "park";
 
 export type StringMaterial = {
   id: string;
@@ -34,6 +41,7 @@ export type DesignState = {
   customLengthCm: number | null;
   viewMode: ViewMode;
   gender: Gender;
+  envPreset: EnvPreset;
   past: Snapshot[];
   future: Snapshot[];
   currentAnchor: { x: number; y: number; z: number } | null;
@@ -49,6 +57,7 @@ export type DesignState = {
   setLength: (cm: number | null) => void;
   setViewMode: (m: ViewMode) => void;
   setGender: (g: Gender) => void;
+  setEnvPreset: (e: EnvPreset) => void;
   setPendant: (id: string | null) => void;
   undo: () => void;
   redo: () => void;
@@ -73,6 +82,7 @@ export const useDesign = create<DesignState>((set, get) => ({
   customLengthCm: null,
   viewMode: "alone",
   gender: "female",
+  envPreset: "studio",
   past: [],
   future: [],
   currentAnchor: null,
@@ -110,6 +120,7 @@ export const useDesign = create<DesignState>((set, get) => ({
   setLength: (cm) => set({ customLengthCm: cm }),
   setViewMode: (m) => set({ viewMode: m }),
   setGender: (g) => set({ gender: g }),
+  setEnvPreset: (e) => set({ envPreset: e }),
 
   setPendant: (id) =>
     set((s) => ({ ...pushHistory(s), pendantId: id })),
