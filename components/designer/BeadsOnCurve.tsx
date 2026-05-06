@@ -34,17 +34,22 @@ export default function BeadsOnCurve({
   );
 
   const pendant = pendantId ? getBead(pendantId) : null;
-  const showPendant = pendant && productType === "necklace";
+  const showPendant =
+    pendant &&
+    (productType === "necklace" || productType === "phone_strap");
 
-  // Pendant placement: hang from the front-most point of the necklace circle
+  // Pendant placement: hang from the front of necklace OR bottom of phone strap
   const pendantData = useMemo(() => {
     if (!showPendant || !pendant) return null;
-    const front = curve.getPointAt(0.25);
-    const chainLengthMm = 25; // 2.5cm cord
+    // necklace : t=0.25 → +Z front of the body
+    // strap    : t=0.5  → bottom of the U loop
+    const t = productType === "phone_strap" ? 0.5 : 0.25;
+    const attach = curve.getPointAt(t);
+    const chainLengthMm = productType === "phone_strap" ? 12 : 25;
     const chainEnd = new THREE.Vector3(
-      front.x,
-      front.y - chainLengthMm * MM_TO_UNIT,
-      front.z,
+      attach.x,
+      attach.y - chainLengthMm * MM_TO_UNIT,
+      attach.z,
     );
     // Tassels & similar hanging shapes attach at their TOP (origin = top).
     // Other pendants are centered, so drop them a further bead-radius.
@@ -54,12 +59,12 @@ export default function BeadsOnCurve({
       ? chainEnd
       : new THREE.Vector3(chainEnd.x, chainEnd.y - pendantR, chainEnd.z);
     return {
-      attach: front,
+      attach,
       chainEnd,
       pos: pendantPos,
       pendant,
     };
-  }, [showPendant, pendant, curve]);
+  }, [showPendant, pendant, curve, productType]);
 
   // Cord/chain geometry from front-of-curve down to chain end
   const cordGeom = useMemo(() => {

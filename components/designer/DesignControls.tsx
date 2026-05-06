@@ -93,9 +93,9 @@ export default function DesignControls() {
     router.push("/cart");
   }
 
-  // Reset pendant when switching away from necklace
+  // Reset pendant on bracelet (it has no hanging point)
   useEffect(() => {
-    if (productType !== "necklace" && pendantId) setPendant(null);
+    if (productType === "bracelet" && pendantId) setPendant(null);
   }, [productType, pendantId, setPendant]);
 
   return (
@@ -147,10 +147,10 @@ export default function DesignControls() {
         </div>
       </div>
 
-      {productType === "necklace" && (
+      {(productType === "necklace" || productType === "phone_strap") && (
         <div>
           <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
-            Зүүлтийн чимэг
+            {productType === "phone_strap" ? "Цацаг / чимэг" : "Зүүлтийн чимэг"}
           </label>
           <div className="grid grid-cols-3 gap-1">
             <button
