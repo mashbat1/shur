@@ -6,12 +6,18 @@ import {
   defaultLengthCm,
   totalPrice,
   ProductType,
+  Gender,
 } from "@/lib/designStore";
 
 const PRODUCT_LABELS: Record<ProductType, string> = {
   bracelet: "Бугуйвч",
   necklace: "Зүүлт",
   phone_strap: "Утасны оосор",
+};
+
+const GENDER_LABELS: Record<Gender, string> = {
+  female: "Эмэгтэй",
+  male: "Эрэгтэй",
 };
 
 export default function DesignControls() {
@@ -24,6 +30,10 @@ export default function DesignControls() {
     setLength,
     beads,
     clear,
+    viewMode,
+    setViewMode,
+    gender,
+    setGender,
   } = useDesign();
 
   const lengthCm = customLengthCm ?? defaultLengthCm(productType);
@@ -76,6 +86,51 @@ export default function DesignControls() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
+          Харах горим
+        </label>
+        <div className="grid grid-cols-2 gap-1">
+          <button
+            onClick={() => setViewMode("alone")}
+            className={`rounded-md border px-2 py-2 text-xs font-medium transition ${
+              viewMode === "alone"
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-line bg-bg text-ink hover:border-muted"
+            }`}
+          >
+            Зөвхөн загвар
+          </button>
+          <button
+            onClick={() => setViewMode("on_body")}
+            className={`rounded-md border px-2 py-2 text-xs font-medium transition ${
+              viewMode === "on_body"
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-line bg-bg text-ink hover:border-muted"
+            }`}
+          >
+            Бие дээр
+          </button>
+        </div>
+        {viewMode === "on_body" && (
+          <div className="mt-2 grid grid-cols-2 gap-1">
+            {(Object.keys(GENDER_LABELS) as Gender[]).map((g) => (
+              <button
+                key={g}
+                onClick={() => setGender(g)}
+                className={`rounded-md border px-2 py-1.5 text-[11px] transition ${
+                  gender === g
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-line bg-bg text-ink hover:border-muted"
+                }`}
+              >
+                {GENDER_LABELS[g]}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
