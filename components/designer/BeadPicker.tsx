@@ -38,8 +38,8 @@ export default function BeadPicker() {
   }, [allBeads, query, shape]);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-b border-line p-3">
+    <div className="h-full min-h-0 overflow-y-auto">
+      <div className="sticky top-0 z-10 border-b border-line bg-panel p-3">
         <h2 className="text-sm font-semibold text-ink">Шурээний каталог</h2>
         <p className="mt-0.5 text-xs text-muted">Дарж нэмнэ</p>
         <input
@@ -65,7 +65,7 @@ export default function BeadPicker() {
         </div>
       </div>
 
-      <div className="grid flex-1 grid-cols-2 gap-2 overflow-y-auto p-3">
+      <div className="grid grid-cols-2 gap-2 p-3">
         {filtered.length === 0 && (
           <div className="col-span-2 py-6 text-center text-xs text-muted">
             Олдсонгүй

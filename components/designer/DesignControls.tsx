@@ -99,7 +99,7 @@ export default function DesignControls() {
   }, [productType, pendantId, setPendant]);
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto p-4">
       <div>
         <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
           Бүтээгдэхүүн

@@ -120,7 +120,7 @@ export default function DesignerPage() {
 
       {/* Desktop layout */}
       <div className="hidden flex-1 grid-cols-[260px_1fr_300px] overflow-hidden md:grid">
-        <aside className="border-r border-line bg-panel">
+        <aside className="min-h-0 overflow-hidden border-r border-line bg-panel">
           <BeadPicker />
         </aside>
 
@@ -130,7 +130,7 @@ export default function DesignerPage() {
           </div>
         </main>
 
-        <aside className="border-l border-line bg-panel">
+        <aside className="min-h-0 overflow-hidden border-l border-line bg-panel">
           <DesignControls />
         </aside>
       </div>
@@ -189,7 +189,7 @@ export default function DesignerPage() {
                 ×
               </button>
             </div>
-            <div className="h-[70vh] overflow-y-auto">
+            <div className="h-[70vh]">
               {mobilePanel === "picker" ? <BeadPicker /> : <DesignControls />}
             </div>
           </div>
