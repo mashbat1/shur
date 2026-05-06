@@ -101,18 +101,25 @@ export async function placeOrder(
   write(ORDERS_KEY, all);
   clearCart();
 
-  // Best-effort sync to Google Sheet (non-blocking failure)
+  // Best-effort sync to Google Sheet (non-blocking failure).
+  // Apps Script returns a 302 redirect that the browser cannot follow
+  // under default cors mode; mode:"no-cors" lets the POST itself land
+  // and doPost() runs server-side even though we can't read the response.
   if (SHEETS_CONFIGURED) {
     try {
       await fetch(SHEETS_URL, {
         method: "POST",
-        // Simple request → no preflight; Apps Script reads e.postData.contents
+        mode: "no-cors",
+        redirect: "follow",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(order),
       });
+      console.log("[beeb] order synced to sheet:", order.id);
     } catch (err) {
-      console.error("Sheet sync failed:", err);
+      console.error("[beeb] Sheet sync failed:", err);
     }
+  } else {
+    console.warn("[beeb] NEXT_PUBLIC_SHEETS_URL not set — order saved locally only");
   }
 
   return order;
