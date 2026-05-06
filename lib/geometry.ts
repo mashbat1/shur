@@ -19,16 +19,18 @@ export function buildStringCurve(
   const lengthU = lengthCm * 10 * MM_TO_UNIT; // cm → mm → units
 
   if (type === "phone_strap") {
-    // Open hanging loop. Both ends start close together (as if both
-    // threaded through the same hole) and droop down in the middle.
+    // Hanging loop where BOTH ends meet at (0, 0, 0) — i.e. they pass
+    // through the same hole — and the cord droops down in the middle.
     const halfL = lengthU / 2;
     return new THREE.CatmullRomCurve3(
       [
-        new THREE.Vector3(-halfL * 0.04, halfL * 0.05, 0),
-        new THREE.Vector3(-halfL * 0.55, -halfL * 0.15, 0),
-        new THREE.Vector3(0, -halfL * 0.55, 0),
-        new THREE.Vector3(halfL * 0.55, -halfL * 0.15, 0),
-        new THREE.Vector3(halfL * 0.04, halfL * 0.05, 0),
+        new THREE.Vector3(0, 0, 0),                               // anchor entry
+        new THREE.Vector3(-halfL * 0.35, -halfL * 0.2, 0),
+        new THREE.Vector3(-halfL * 0.5, -halfL * 0.45, 0),
+        new THREE.Vector3(0, -halfL * 0.55, 0),                   // bottom of loop
+        new THREE.Vector3(halfL * 0.5, -halfL * 0.45, 0),
+        new THREE.Vector3(halfL * 0.35, -halfL * 0.2, 0),
+        new THREE.Vector3(0, 0, 0),                               // anchor exit
       ],
       false,
       "catmullrom",
