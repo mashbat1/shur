@@ -110,9 +110,14 @@ export default function CartPage() {
           <Link href="/" className="text-lg font-bold tracking-tight">
             beeb<span className="text-accent">.</span>
           </Link>
-          <Link href="/designer" className="text-xs text-muted hover:text-ink">
-            ← Дизайнер руу буцах
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/orders" className="text-xs text-muted hover:text-ink">
+              📦 Миний захиалгууд
+            </Link>
+            <Link href="/designer" className="text-xs text-muted hover:text-ink">
+              ← Дизайнер
+            </Link>
+          </div>
         </div>
       </header>
 

@@ -32,17 +32,36 @@ export default function Canvas3D() {
   const onBody = viewMode === "on_body";
   const onPhone = onBody && productType === "phone_strap";
 
-  // Camera config:
-  //  - phone view: close-up on the phone (~30cm away)
-  //  - body view: full body shot
-  //  - alone:     scaled to design size
-  const camDistance = onPhone ? 0.35 : onBody ? 2.6 : Math.max(0.6, lengthCm / 30);
-  const camHeight = onPhone ? 0 : onBody ? 1.4 : camDistance * 0.6;
-  const target: [number, number, number] = onPhone
-    ? [0, 0, 0]
-    : onBody
-    ? [0, 1.0, 0]
-    : [0, 0, 0];
+  // Camera config (per view):
+  //  - phone view : close-up on the phone, ~30cm away
+  //  - body view  : portrait — higher target so the model fills the frame
+  //                 (necklace gets a slightly higher target to show the neck)
+  //  - alone view : scaled to the design's own size
+  let camDistance: number;
+  let camHeight: number;
+  let target: [number, number, number];
+
+  if (onPhone) {
+    camDistance = 0.35;
+    camHeight = 0;
+    target = [0, 0, 0];
+  } else if (onBody) {
+    camDistance = 1.9;
+    if (productType === "necklace") {
+      camHeight = 1.45;
+      target = [0, 1.35, 0];
+    } else if (productType === "bracelet") {
+      camHeight = 1.1;
+      target = [0, 1.0, 0];
+    } else {
+      camHeight = 1.2;
+      target = [0, 1.1, 0];
+    }
+  } else {
+    camDistance = Math.max(0.6, lengthCm / 30);
+    camHeight = camDistance * 0.6;
+    target = [0, 0, 0];
+  }
 
   const beadGroup = (
     <BeadsOnCurve

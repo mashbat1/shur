@@ -9,7 +9,7 @@ import Timeline from "@/components/designer/Timeline";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useDesign } from "@/lib/designStore";
 import { decodeDesign } from "@/lib/share";
-import { getCart } from "@/lib/cart";
+import { getCart, getOrders } from "@/lib/cart";
 import { useI18n } from "@/lib/i18n";
 
 const Canvas3D = dynamic(() => import("@/components/designer/Canvas3D"), {
@@ -28,6 +28,7 @@ export default function DesignerPage() {
   const redo = useDesign((s) => s.redo);
 
   const [cartCount, setCartCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
   const [mobilePanel, setMobilePanel] = useState<"none" | "picker" | "controls">(
     "none",
   );
@@ -48,9 +49,12 @@ export default function DesignerPage() {
     }
   }, [loadDesign]);
 
-  // Cart badge
+  // Cart + order badges
   useEffect(() => {
-    const refresh = () => setCartCount(getCart().length);
+    const refresh = () => {
+      setCartCount(getCart().length);
+      setOrderCount(getOrders().length);
+    };
     refresh();
     window.addEventListener("storage", refresh);
     return () => window.removeEventListener("storage", refresh);
@@ -87,11 +91,22 @@ export default function DesignerPage() {
         <div className="hidden text-xs text-muted md:block">
           {t("rotate_hint")}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <LanguageToggle />
+          {orderCount > 0 && (
+            <Link
+              href="/orders"
+              className="relative rounded-md border border-line px-2.5 py-1 text-xs text-ink hover:border-muted"
+            >
+              📦 Захиалгууд
+              <span className="ml-1 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-black">
+                {orderCount}
+              </span>
+            </Link>
+          )}
           <Link
             href="/cart"
-            className="relative rounded-md border border-line px-3 py-1 text-xs text-ink hover:border-muted"
+            className="relative rounded-md border border-line px-2.5 py-1 text-xs text-ink hover:border-muted"
           >
             🛒 {t("cart")}
             {cartCount > 0 && (

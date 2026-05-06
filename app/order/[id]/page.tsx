@@ -51,9 +51,14 @@ export default function OrderTrackingPage({
           <Link href="/" className="text-lg font-bold tracking-tight">
             beeb<span className="text-accent">.</span>
           </Link>
-          <Link href="/designer" className="text-xs text-muted hover:text-ink">
-            ← Дизайнер
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/orders" className="text-xs text-muted hover:text-ink">
+              📦 Бүх захиалга
+            </Link>
+            <Link href="/designer" className="text-xs text-muted hover:text-ink">
+              ← Дизайнер
+            </Link>
+          </div>
         </div>
       </header>
 
