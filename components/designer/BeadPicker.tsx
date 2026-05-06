@@ -1,20 +1,77 @@
 "use client";
 
-import { BEADS } from "@/lib/beads";
+import { useEffect, useMemo, useState } from "react";
+import { Bead, BeadShape, getAllBeads } from "@/lib/beads";
 import { useDesign } from "@/lib/designStore";
+
+const SHAPE_FILTERS: { id: BeadShape | "all"; label: string }[] = [
+  { id: "all", label: "Бүгд" },
+  { id: "round", label: "Бөмбөлөг" },
+  { id: "tube", label: "Труба" },
+  { id: "cube", label: "Шоо" },
+  { id: "bicone", label: "Хошуут" },
+  { id: "disc", label: "Хавтгай" },
+];
 
 export default function BeadPicker() {
   const addBead = useDesign((s) => s.addBead);
+  const [query, setQuery] = useState("");
+  const [shape, setShape] = useState<BeadShape | "all">("all");
+  const [allBeads, setAllBeads] = useState<Bead[]>([]);
+
+  useEffect(() => {
+    const refresh = () => setAllBeads(getAllBeads());
+    refresh();
+    window.addEventListener("storage", refresh);
+    return () => window.removeEventListener("storage", refresh);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return allBeads
+      .filter((b) => !b.pendant)
+      .filter((b) => {
+        if (shape !== "all" && b.shape !== shape) return false;
+        if (q && !b.name.toLowerCase().includes(q)) return false;
+        return true;
+      });
+  }, [allBeads, query, shape]);
 
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-line p-3">
         <h2 className="text-sm font-semibold text-ink">Шурээний каталог</h2>
         <p className="mt-0.5 text-xs text-muted">Дарж нэмнэ</p>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Хайх…"
+          className="mt-2 w-full rounded-md border border-line bg-bg px-2 py-1.5 text-xs text-ink placeholder:text-muted focus:border-accent focus:outline-none"
+        />
+        <div className="mt-2 flex flex-wrap gap-1">
+          {SHAPE_FILTERS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setShape(f.id)}
+              className={`rounded-full border px-2 py-0.5 text-[10px] transition ${
+                shape === f.id
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-line text-muted hover:border-muted hover:text-ink"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid flex-1 grid-cols-2 gap-2 overflow-y-auto p-3">
-        {BEADS.map((b) => (
+        {filtered.length === 0 && (
+          <div className="col-span-2 py-6 text-center text-xs text-muted">
+            Олдсонгүй
+          </div>
+        )}
+        {filtered.map((b) => (
           <button
             key={b.id}
             onClick={() => addBead(b.id)}

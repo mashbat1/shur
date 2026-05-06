@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   useDesign,
   STRINGS,
@@ -8,6 +10,9 @@ import {
   ProductType,
   Gender,
 } from "@/lib/designStore";
+import { PENDANT_BEADS } from "@/lib/beads";
+import { addToCart } from "@/lib/cart";
+import { downloadCanvasPng, encodeDesign } from "@/lib/share";
 
 const PRODUCT_LABELS: Record<ProductType, string> = {
   bracelet: "Бугуйвч",
@@ -21,6 +26,7 @@ const GENDER_LABELS: Record<Gender, string> = {
 };
 
 export default function DesignControls() {
+  const router = useRouter();
   const {
     productType,
     setProductType,
@@ -29,6 +35,8 @@ export default function DesignControls() {
     customLengthCm,
     setLength,
     beads,
+    pendantId,
+    setPendant,
     clear,
     viewMode,
     setViewMode,
@@ -37,10 +45,49 @@ export default function DesignControls() {
   } = useDesign();
 
   const lengthCm = customLengthCm ?? defaultLengthCm(productType);
-  const price = totalPrice(beads, stringId, lengthCm);
+  const price = totalPrice(beads, stringId, lengthCm, pendantId);
+
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
+
+  async function handleShare() {
+    const hash = encodeDesign({
+      t: productType,
+      b: beads,
+      p: pendantId,
+      s: stringId,
+      l: customLengthCm ?? undefined,
+    });
+    const url = `${window.location.origin}/designer#${hash}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareMsg("Линк хууллаа ✓");
+    } catch {
+      setShareMsg(url);
+    }
+    setTimeout(() => setShareMsg(null), 2500);
+  }
+
+  function handleAddToCart() {
+    addToCart({
+      id: `d_${Date.now()}`,
+      productType,
+      beads: [...beads],
+      pendantId: pendantId ?? null,
+      stringId,
+      lengthCm,
+      price,
+      createdAt: new Date().toISOString(),
+    });
+    router.push("/cart");
+  }
+
+  // Reset pendant when switching away from necklace
+  useEffect(() => {
+    if (productType !== "necklace" && pendantId) setPendant(null);
+  }, [productType, pendantId, setPendant]);
 
   return (
-    <div className="flex h-full flex-col gap-4 p-4">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
       <div>
         <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
           Бүтээгдэхүүн
@@ -88,6 +135,44 @@ export default function DesignControls() {
         </div>
       </div>
 
+      {productType === "necklace" && (
+        <div>
+          <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
+            Зүүлтийн чимэг
+          </label>
+          <div className="grid grid-cols-3 gap-1">
+            <button
+              onClick={() => setPendant(null)}
+              className={`rounded-md border px-2 py-2 text-[11px] transition ${
+                !pendantId
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-line bg-bg text-ink hover:border-muted"
+              }`}
+            >
+              Чимэггүй
+            </button>
+            {PENDANT_BEADS.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setPendant(c.id)}
+                title={`${c.name} — ${c.price.toLocaleString()}₮`}
+                className={`flex flex-col items-center gap-0.5 rounded-md border px-1 py-1.5 transition ${
+                  pendantId === c.id
+                    ? "border-accent bg-accent/10"
+                    : "border-line bg-bg hover:border-muted"
+                }`}
+              >
+                <span
+                  className="h-5 w-5 rounded-full ring-1 ring-black/30"
+                  style={{ background: c.color }}
+                />
+                <span className="truncate text-[10px] text-ink">{c.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted">
           Харах горим
@@ -115,21 +200,45 @@ export default function DesignControls() {
           </button>
         </div>
         {viewMode === "on_body" && (
-          <div className="mt-2 grid grid-cols-2 gap-1">
-            {(Object.keys(GENDER_LABELS) as Gender[]).map((g) => (
+          <>
+            <div className="mt-2 grid grid-cols-2 gap-1">
+              {(Object.keys(GENDER_LABELS) as Gender[]).map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setGender(g)}
+                  className={`rounded-md border px-2 py-1.5 text-[11px] transition ${
+                    gender === g
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-line bg-bg text-ink hover:border-muted"
+                  }`}
+                >
+                  {GENDER_LABELS[g]}
+                </button>
+              ))}
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-1">
               <button
-                key={g}
-                onClick={() => setGender(g)}
-                className={`rounded-md border px-2 py-1.5 text-[11px] transition ${
-                  gender === g
-                    ? "border-accent bg-accent/10 text-accent"
-                    : "border-line bg-bg text-ink hover:border-muted"
-                }`}
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("zoom-preset", { detail: "fit" }),
+                  )
+                }
+                className="rounded-md border border-line bg-bg px-2 py-1.5 text-[11px] text-ink transition hover:border-muted"
               >
-                {GENDER_LABELS[g]}
+                Бүтэн биеэр
               </button>
-            ))}
-          </div>
+              <button
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent("zoom-preset", { detail: "close" }),
+                  )
+                }
+                className="rounded-md border border-line bg-bg px-2 py-1.5 text-[11px] text-ink transition hover:border-muted"
+              >
+                Ойрхон
+              </button>
+            </div>
+          </>
         )}
       </div>
 
@@ -157,6 +266,28 @@ export default function DesignControls() {
         </button>
       </div>
 
+      <div className="grid grid-cols-2 gap-1">
+        <button
+          onClick={() => downloadCanvasPng()}
+          disabled={beads.length === 0}
+          className="rounded-md border border-line py-2 text-[11px] font-medium text-ink transition hover:border-muted disabled:opacity-40"
+        >
+          📷 Зураг татах
+        </button>
+        <button
+          onClick={handleShare}
+          disabled={beads.length === 0}
+          className="rounded-md border border-line py-2 text-[11px] font-medium text-ink transition hover:border-muted disabled:opacity-40"
+        >
+          🔗 Линк хуваалцах
+        </button>
+      </div>
+      {shareMsg && (
+        <div className="rounded-md bg-accent/15 px-2 py-1 text-center text-[11px] text-accent">
+          {shareMsg}
+        </div>
+      )}
+
       <div className="mt-auto rounded-lg border border-line bg-bg p-3">
         <div className="flex items-baseline justify-between">
           <span className="text-xs uppercase tracking-wide text-muted">Нийт</span>
@@ -165,7 +296,8 @@ export default function DesignControls() {
           </span>
         </div>
         <div className="mt-1 text-[11px] text-muted">
-          {beads.length} ширхэг шурэг + утас + ажлын хөлс
+          {beads.length} ширхэг шурэг
+          {pendantId ? " + чимэг" : ""} + утас + ажлын хөлс
         </div>
 
         <div className="mt-3 flex gap-2">
@@ -177,6 +309,7 @@ export default function DesignControls() {
             Цэвэрлэх
           </button>
           <button
+            onClick={handleAddToCart}
             disabled={beads.length === 0}
             className="flex-1 rounded-md bg-accent py-2 text-xs font-bold text-black transition hover:brightness-110 disabled:opacity-40"
           >

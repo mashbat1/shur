@@ -3,7 +3,7 @@
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { useEffect, useMemo, useState, ReactNode } from "react";
-import { ProductType, Gender } from "@/lib/designStore";
+import { ProductType, Gender, useDesign } from "@/lib/designStore";
 
 const MODEL_BY_GENDER: Record<Gender, string> = {
   female: "/models/female.glb",
@@ -92,6 +92,18 @@ export default function BodyModel({ productType, gender, children }: Props) {
         anchor.pos.z + adj.offset[2],
       )
     : null;
+
+  const setCurrentAnchor = useDesign((s) => s.setCurrentAnchor);
+  const ax = adjPos?.x;
+  const ay = adjPos?.y;
+  const az = adjPos?.z;
+  useEffect(() => {
+    if (ax === undefined || ay === undefined || az === undefined) {
+      setCurrentAnchor(null);
+    } else {
+      setCurrentAnchor({ x: ax, y: ay, z: az });
+    }
+  }, [ax, ay, az, setCurrentAnchor]);
 
   return (
     <group position={[0, 0, 0]}>
