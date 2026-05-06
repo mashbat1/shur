@@ -156,6 +156,22 @@ function CameraRig({
   const beads = useDesign((s) => s.beads);
   const currentAnchor = useDesign((s) => s.currentAnchor);
 
+  // Scalar deps so the framing effect only fires when the chosen view
+  // actually changes, not on every render (adding a bead, toggling
+  // pendant, etc. would otherwise yank the camera back to the preset).
+  const [tx, ty, tz] = fitTarget;
+  const [px, py, pz] = fitPos;
+
+  // Apply the preset framing on mount and whenever the view changes
+  useEffect(() => {
+    const ctrl = controlsRef.current;
+    if (!ctrl) return;
+    ctrl.target.set(tx, ty, tz);
+    camera.position.set(px, py, pz);
+    ctrl.update();
+  }, [camera, tx, ty, tz, px, py, pz]);
+
+  // Manual zoom-preset event ("Бүтэн биеэр" / "Ойрхон")
   useEffect(() => {
     function handler(e: Event) {
       const detail = (e as CustomEvent<CameraPreset>).detail;
@@ -167,21 +183,20 @@ function CameraRig({
         ctrl.target.set(a.x, a.y, a.z);
         camera.position.set(a.x + 0.25, a.y + 0.05, a.z + 0.25);
       } else {
-        ctrl.target.set(...fitTarget);
-        camera.position.set(...fitPos);
+        ctrl.target.set(tx, ty, tz);
+        camera.position.set(px, py, pz);
       }
       ctrl.update();
     }
     window.addEventListener("zoom-preset", handler);
     return () => window.removeEventListener("zoom-preset", handler);
-  }, [camera, onBody, fitTarget, fitPos, currentAnchor]);
+  }, [camera, onBody, tx, ty, tz, px, py, pz, currentAnchor]);
 
   return (
     <OrbitControls
       ref={controlsRef}
       makeDefault
       enableDamping
-      target={new THREE.Vector3(...fitTarget)}
       autoRotate={!onBody && beads.length > 0}
       autoRotateSpeed={0.6}
       minDistance={minDist}
