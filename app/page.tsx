@@ -13,6 +13,9 @@ export default function HomePage() {
           beeb<span className="text-accent">.</span>
         </div>
         <nav className="flex items-center gap-5 text-sm text-muted">
+          <Link href="/templates" className="hidden hover:text-ink sm:block">
+            {t("templates")}
+          </Link>
           <a href="#how" className="hidden hover:text-ink sm:block">
             {t("nav_how")}
           </a>
@@ -49,12 +52,12 @@ export default function HomePage() {
             >
               {t("cta_start")}
             </Link>
-            <a
-              href="#how"
+            <Link
+              href="/templates"
               className="rounded-lg border border-line px-6 py-3 text-sm font-medium text-ink transition hover:border-muted"
             >
-              {t("cta_more")}
-            </a>
+              {t("templates")}
+            </Link>
           </div>
         </div>
       </section>

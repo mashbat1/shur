@@ -9,6 +9,8 @@ export default function Timeline() {
   const removeAt = useDesign((s) => s.removeAt);
   const moveBead = useDesign((s) => s.moveBead);
   const mirror = useDesign((s) => s.mirror);
+  const duplicate = useDesign((s) => s.duplicate);
+  const fillPattern = useDesign((s) => s.fillPattern);
   const undo = useDesign((s) => s.undo);
   const redo = useDesign((s) => s.redo);
   const past = useDesign((s) => s.past);
@@ -47,6 +49,22 @@ export default function Timeline() {
             className="rounded border border-line px-2 py-0.5 text-xs text-ink transition hover:border-muted disabled:opacity-30"
           >
             ⇋ Толь
+          </button>
+          <button
+            onClick={duplicate}
+            disabled={beads.length === 0}
+            title="Одоогийн дарааллыг 2 дахин үржүүлэх"
+            className="rounded border border-line px-2 py-0.5 text-xs text-ink transition hover:border-muted disabled:opacity-30"
+          >
+            ×2 Давтах
+          </button>
+          <button
+            onClick={fillPattern}
+            disabled={beads.length === 0}
+            title="Уртаар дүүртэл хэв маягийг давтах"
+            className="rounded border border-line px-2 py-0.5 text-xs text-ink transition hover:border-muted disabled:opacity-30"
+          >
+            ⇣ Дүүргэх
           </button>
           <span className="text-xs text-muted">{beads.length} ширхэг</span>
         </div>

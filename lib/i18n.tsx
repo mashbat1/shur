@@ -19,6 +19,7 @@ const DICT = {
   open_designer:        { mn: "Дизайнер нээх",                     en: "Open designer" },
   back_to_designer:     { mn: "← Дизайнер руу буцах",              en: "← Back to designer" },
   cart:                 { mn: "Сагс",                              en: "Cart" },
+  templates:            { mn: "Бэлэн загвар",                      en: "Templates" },
 
   // Home page
   hero_l1:              { mn: "Өөрөө угсар.",                       en: "Build it yourself." },

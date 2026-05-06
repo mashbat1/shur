@@ -93,6 +93,12 @@ export default function DesignerPage() {
         </div>
         <div className="flex items-center gap-2">
           <LanguageToggle />
+          <Link
+            href="/templates"
+            className="rounded-md border border-line px-2.5 py-1 text-xs text-ink hover:border-muted"
+          >
+            ✨ {t("templates")}
+          </Link>
           {orderCount > 0 && (
             <Link
               href="/orders"

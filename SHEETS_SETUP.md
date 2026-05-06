@@ -17,6 +17,13 @@ Sheet жишээ: `https://docs.google.com/spreadsheets/d/1wag-ddAE_oTZ-U_RJLC8u
    асууна — `Allow` дар.
 5. Sheet рүүгээ буцаж шалгана: **Orders** нэртэй sheet шинээр үүсэж, толгой мөр + Төлөв
    баганад dropdown гарсан байх ёстой.
+6. **Email/SMS мэдэгдэл** — функцын dropdown-оос `installEditTrigger` сонгож **▶ Run** дар.
+   Энэ нь Төлөв эсвэл Хүргэх огноо багана өөрчлөгдөх бүрд хэрэглэгчийн email рүү
+   баталгаажуулалт явуулна.
+
+> ⚙️ **Twilio SMS** ашиглах бол script-ийн дээд хэсэгт `TWILIO.accountSid`, `authToken`,
+> `fromNumber`-ыг өөрөө бөглөөд дахин Save → installEditTrigger ажиллуул.
+> Twilio account шинэ хэрэглэгчид ~$15 кредит үнэгүй өгдөг.
 
 ## 2. Web App-ыг deploy хийх
 

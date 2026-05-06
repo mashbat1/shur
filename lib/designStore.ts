@@ -53,6 +53,8 @@ export type DesignState = {
   moveBead: (from: number, to: number) => void;
   clear: () => void;
   mirror: () => void;
+  duplicate: () => void;
+  fillPattern: () => void;
   setString: (id: string) => void;
   setLength: (cm: number | null) => void;
   setViewMode: (m: ViewMode) => void;
@@ -114,6 +116,26 @@ export const useDesign = create<DesignState>((set, get) => ({
       if (s.beads.length < 2) return s;
       const reversed = [...s.beads].reverse().slice(1); // avoid duplicating last bead
       return { ...pushHistory(s), beads: [...s.beads, ...reversed] };
+    }),
+
+  duplicate: () =>
+    set((s) => {
+      if (s.beads.length === 0) return s;
+      return { ...pushHistory(s), beads: [...s.beads, ...s.beads] };
+    }),
+
+  fillPattern: () =>
+    set((s) => {
+      if (s.beads.length === 0) return s;
+      const targetMm =
+        (s.customLengthCm ?? defaultLengthCm(s.productType)) * 10;
+      const patternMm = totalBeadLengthMm(s.beads);
+      if (patternMm === 0) return s;
+      const total = Math.max(1, Math.floor(targetMm / patternMm));
+      if (total <= 1) return s;
+      const newBeads: string[] = [];
+      for (let i = 0; i < total; i++) newBeads.push(...s.beads);
+      return { ...pushHistory(s), beads: newBeads };
     }),
 
   setString: (id) => set({ stringId: id }),
