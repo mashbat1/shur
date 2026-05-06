@@ -39,28 +39,32 @@ export default function BeadsOnCurve({
   // Pendant placement: hang from the front-most point of the necklace circle
   const pendantData = useMemo(() => {
     if (!showPendant || !pendant) return null;
-    // Our necklace circle is built in the XZ plane with center at origin.
-    // Sample t=0.25 to land on +Z (front of the body when facing +Z)
     const front = curve.getPointAt(0.25);
     const chainLengthMm = 25; // 2.5cm cord
-    const pendantR = (pendant.diameterMm / 2) * MM_TO_UNIT;
-    const pendantPos = new THREE.Vector3(
+    const chainEnd = new THREE.Vector3(
       front.x,
-      front.y - chainLengthMm * MM_TO_UNIT - pendantR,
+      front.y - chainLengthMm * MM_TO_UNIT,
       front.z,
     );
+    // Tassels & similar hanging shapes attach at their TOP (origin = top).
+    // Other pendants are centered, so drop them a further bead-radius.
+    const isHanging = pendant.shape === "tassel";
+    const pendantR = (pendant.diameterMm / 2) * MM_TO_UNIT;
+    const pendantPos = isHanging
+      ? chainEnd
+      : new THREE.Vector3(chainEnd.x, chainEnd.y - pendantR, chainEnd.z);
     return {
       attach: front,
+      chainEnd,
       pos: pendantPos,
       pendant,
-      pendantR,
     };
   }, [showPendant, pendant, curve]);
 
-  // Cord/chain geometry from front-of-curve down to pendant
+  // Cord/chain geometry from front-of-curve down to chain end
   const cordGeom = useMemo(() => {
     if (!pendantData) return null;
-    const path = new THREE.LineCurve3(pendantData.attach, pendantData.pos);
+    const path = new THREE.LineCurve3(pendantData.attach, pendantData.chainEnd);
     return new THREE.TubeGeometry(path, 8, 0.002, 6, false);
   }, [pendantData]);
 

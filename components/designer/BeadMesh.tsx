@@ -34,6 +34,41 @@ function buildHeartGeometry(size: number): THREE.BufferGeometry {
   return geo;
 }
 
+function buildTassel(
+  diameterMm: number,
+  lengthMm: number,
+): {
+  cap: THREE.BufferGeometry;
+  strands: { tube: THREE.BufferGeometry }[];
+} {
+  // A tassel: small bead-cap at top, ~16 thin strands fanning down.
+  const capR = (diameterMm / 2) * MM_TO_UNIT * 0.7;
+  const capH = capR * 1.4;
+  const cap = new THREE.CylinderGeometry(capR * 0.6, capR, capH, 16);
+  // place cap so its top is at y=0 (tassel hangs from origin)
+  cap.translate(0, -capH / 2, 0);
+
+  const strandLen = lengthMm * MM_TO_UNIT;
+  const fanR = (diameterMm / 2) * MM_TO_UNIT;
+  const N = 18;
+  const strands: { tube: THREE.BufferGeometry }[] = [];
+  for (let i = 0; i < N; i++) {
+    const angle = (i / N) * Math.PI * 2;
+    // pseudo-random radius (deterministic) so the tassel looks slightly uneven
+    const jitter = 0.6 + 0.4 * Math.abs(Math.sin(i * 12.9898));
+    const ex = Math.cos(angle) * fanR * jitter;
+    const ez = Math.sin(angle) * fanR * jitter;
+    const yEnd = -capH - strandLen * (0.85 + 0.15 * Math.abs(Math.cos(i * 7.7)));
+    const start = new THREE.Vector3(0, -capH, 0);
+    const mid = new THREE.Vector3(ex * 0.4, -capH - strandLen * 0.45, ez * 0.4);
+    const end = new THREE.Vector3(ex, yEnd, ez);
+    const path = new THREE.CatmullRomCurve3([start, mid, end]);
+    const tube = new THREE.TubeGeometry(path, 8, capR * 0.04, 4, false);
+    strands.push({ tube });
+  }
+  return { cap, strands };
+}
+
 function buildStarGeometry(size: number): THREE.BufferGeometry {
   const shape = new THREE.Shape();
   const points = 5;
@@ -82,6 +117,13 @@ export default function BeadMesh({ bead, position, quaternion }: Props) {
   const starGeo = useMemo(
     () => (bead.shape === "star" ? buildStarGeometry(r) : null),
     [bead.shape, r],
+  );
+  const tasselData = useMemo(
+    () =>
+      bead.shape === "tassel"
+        ? buildTassel(bead.diameterMm, bead.lengthMm ?? 60)
+        : null,
+    [bead.shape, bead.diameterMm, bead.lengthMm],
   );
 
   // Each bead's local Y axis runs along the string tangent
@@ -134,6 +176,15 @@ export default function BeadMesh({ bead, position, quaternion }: Props) {
 
       {bead.shape === "star" && starGeo && (
         <mesh geometry={starGeo} material={material} castShadow receiveShadow />
+      )}
+
+      {bead.shape === "tassel" && tasselData && (
+        <>
+          <mesh geometry={tasselData.cap} material={material} castShadow receiveShadow />
+          {tasselData.strands.map((s, i) => (
+            <mesh key={i} geometry={s.tube} material={material} castShadow />
+          ))}
+        </>
       )}
     </group>
   );
